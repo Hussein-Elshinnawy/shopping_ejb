@@ -21,36 +21,71 @@ public class CoveredRegionResource {
     private UserTransaction userTransaction;
 
     @POST
-    @Path("/addCoveredRegion")
-    public void addCoveredRegion(String regionName, int companyId) {
-        ShippingCompany company = entityManager.find(ShippingCompany.class, companyId);
-        if (company == null) {
-            throw new IllegalArgumentException("Company not found");
+    @Path("/createCoveredRegion")
+    public String createCoveredRegion(CoveredRegion region) {
+        try {
+            userTransaction.begin();
+        } catch (NotSupportedException | SystemException e) {
+            throw new RuntimeException(e);
         }
-        CoveredRegion region = new CoveredRegion();
-        region.setRegion(regionName);
-        region.setCompany(company);
         entityManager.persist(region);
+        try {
+            userTransaction.commit();
+        } catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException |
+                 IllegalStateException |
+                 SystemException e) {
+            e.printStackTrace();
+        }
+        return "shipping company created successfully!\n" + " welcome " + region.getRegion() + "your company id is" ;
+    }
+    @PUT
+    @Path("/updateCoveredRegion/{id}")
+    public String updateCoveredRegion(@PathParam("id") int regionId, CoveredRegion region) {
+        try {
+            CoveredRegion coveredRegionFromDB = entityManager.find(CoveredRegion.class, regionId);
+            coveredRegionFromDB.setRegion(region.getRegion());
+
+            try {
+                userTransaction.begin();
+            } catch (NotSupportedException | SystemException e) {
+                throw new RuntimeException(e);
+            }
+            entityManager.merge(coveredRegionFromDB);
+            try {
+                userTransaction.commit();
+            } catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException |
+                     IllegalStateException | SystemException e) {
+                e.printStackTrace();
+            }
+            return "coveredRegionFromDB updated successfully!";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "coveredRegionFromDB update failed!";
+        }
     }
 
     @DELETE
-    @Path("/removeCoveredRegion")
-    public void removeCoveredRegion(int regionId) {
-        CoveredRegion region = entityManager.find(CoveredRegion.class, regionId);
-        if (region == null) {
-            throw new IllegalArgumentException("Region not found");
+    @Path("/deleteCoveredRegion/{id}")
+    public String deleteCoveredRegion(@PathParam("id") int regionId) {
+        try {
+            CoveredRegion region = entityManager.find(CoveredRegion.class, regionId);
+            try {
+                userTransaction.begin();
+            } catch (NotSupportedException | SystemException e) {
+                throw new RuntimeException(e);
+            }
+            entityManager.remove(region);
+            try {
+                userTransaction.commit();
+            } catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException |
+                     IllegalStateException | SystemException e) {
+                e.printStackTrace();
+            }
+            return "CoveredRegion deleted successfully!";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "CoveredRegion deletion failed!";
         }
-        entityManager.remove(region);
-    }
-    @GET
-    @Path("/{companyId}")
-    public List<CoveredRegion> getCoveredRegionsByCompany(int companyId) {
-        ShippingCompany company = entityManager.find(ShippingCompany.class, companyId);
-        if (company == null) {
-            throw new IllegalArgumentException("Company not found");
-        }
-        return entityManager.createQuery("SELECT c FROM CoveredRegion c WHERE c.company = :company", CoveredRegion.class).getResultList();
-
     }
 
     @GET
@@ -60,18 +95,9 @@ public class CoveredRegionResource {
         return region;
     }
 
-    @PUT
-    @Path("/updateCoveredRegion/{regionId}")
-    public String updateCoveredRegion(@PathParam("regionId") int regionId, CoveredRegion region) {
-        try {
-            CoveredRegion coveredRegionFromDB = entityManager.find(CoveredRegion.class, regionId);
-            coveredRegionFromDB.setRegion(region.getRegion());
-//            shippingCompanyFromDB.setId(company.getId());
-
-            return "coveredRegion updated successfully!";
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "coveredRegion update failed!";
-        }
+    @GET
+    @Path("/getAllCoveredRegion")
+    public List<CoveredRegion> getAllCoveredRegion() {
+        return entityManager.createQuery("SELECT c FROM CoveredRegion c", CoveredRegion.class).getResultList();
     }
 }

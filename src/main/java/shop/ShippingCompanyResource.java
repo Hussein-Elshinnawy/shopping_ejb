@@ -41,20 +41,31 @@ public class ShippingCompanyResource {
         return "shipping company created successfully!\n" + " welcome " + company.getName() + "your company id is" + company.getId();
     }
 
-//    @PUT
-//    @Path("/updateShippingCompany/{id}")
-//    public String updateShippingCompany(@PathParam("id") int companyId, ShippingCompany company) {
-//        try {
-//            ShippingCompany shippingCompanyFromDB = entityManager.find(ShippingCompany.class, companyId);
-//            shippingCompanyFromDB.setName(company.getName());
-////            shippingCompanyFromDB.setId(company.getId());
-//
-//            return "ShippingCompany updated successfully!";
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return "ShippingCompany update failed!";
-//        }
-//    }
+    @PUT
+    @Path("/updateShippingCompany/{id}")
+    public String updateShippingCompany(@PathParam("id") int companyId, ShippingCompany company) {
+        try {
+            ShippingCompany shippingCompanyFromDB = entityManager.find(ShippingCompany.class, companyId);
+            shippingCompanyFromDB.setName(company.getName());
+
+            try {
+                userTransaction.begin();
+            } catch (NotSupportedException | SystemException e) {
+                throw new RuntimeException(e);
+            }
+            entityManager.merge(shippingCompanyFromDB);
+            try {
+                userTransaction.commit();
+            } catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException |
+                     IllegalStateException | SystemException e) {
+                e.printStackTrace();
+            }
+            return "ShippingCompany updated successfully!";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "ShippingCompany update failed!";
+        }
+    }
 
     @DELETE
     @Path("/deleteShippingCompany/{id}")
@@ -93,26 +104,26 @@ public class ShippingCompanyResource {
         return entityManager.createQuery("SELECT c FROM ShippingCompany c", ShippingCompany.class).getResultList();
     }
 
-    @PUT
-    @Path("/updateShippingCompany/{companyId}")
-    public void updateById(@PathParam("companyId") int companyId, String name) {
-        ShippingCompany company = getShippingCompanyId(companyId);
-        if (company != null) {
-            company.setName(name);
-            /* update any other fields as needed */
-            try {
-                userTransaction.begin();
-            } catch (NotSupportedException | SystemException e) {
-                throw new RuntimeException(e);
-            }
-            entityManager.merge(company);
-        }
-        try {
-            userTransaction.commit();
-        } catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException |
-                 IllegalStateException | SystemException e) {
-            e.printStackTrace();
-        }
-    }
+//    @PUT
+//    @Path("/updateShippingCompany/{companyId}")
+//    public void updateById(@PathParam("companyId") int companyId, String name) {
+//        ShippingCompany company = getShippingCompanyId(companyId);
+//        if (company != null) {
+//            company.setName(name);
+//            /* update any other fields as needed */
+//            try {
+//                userTransaction.begin();
+//            } catch (NotSupportedException | SystemException e) {
+//                throw new RuntimeException(e);
+//            }
+//            entityManager.merge(company);
+//        }
+//        try {
+//            userTransaction.commit();
+//        } catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException |
+//                 IllegalStateException | SystemException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
 }

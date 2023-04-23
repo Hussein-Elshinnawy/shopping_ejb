@@ -154,14 +154,28 @@ public class AdminResource {
         return entityManager.createQuery("SELECT s FROM SellingCompanyRep s", SellingCompanyRep.class).getResultList();
     }
 
-//    public void addCompanyToRegion(int companyId, int regionId) {
-//        ShippingCompany company = companyResource.getShippingCompanyId(companyId);
-//        CoveredRegion region = regionResource.getCoveredRegionId(regionId);
-//        if (company != null && region != null) {
-//            region.setCompany(company);
-//            regionResource.updateCoveredRegion(regionId,region);
-//        }
-//    }
+    @PUT
+    @Path("/addCompanyToRegion/{companyId}/{regionId}")
+    public String addCompanyToRegion(@PathParam("companyId") int companyId, @PathParam("regionId") int regionId) {
+
+        CoveredRegion region = entityManager.find(CoveredRegion.class, regionId);
+        ShippingCompany company = entityManager.find(ShippingCompany.class, companyId);
+
+        try {
+            userTransaction.begin();
+        } catch (NotSupportedException | SystemException e) {
+            throw new RuntimeException(e);
+        }
+        region.getShippingCompanies().add(company);
+        entityManager.merge(region);
+        try {
+            userTransaction.commit();
+        } catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException |
+                 IllegalStateException | SystemException e) {
+            e.printStackTrace();
+        }
+        return "Company added to Region successfully!";
+    }
 
 
 

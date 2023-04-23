@@ -3,6 +3,8 @@ package shop;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Stateless
 @Entity
 @Table(name = "coveredregion")
@@ -12,13 +14,12 @@ public class CoveredRegion {
     private int regionId;
     private String region;
 
-    @ManyToOne
-    @JoinColumn(name = "company_id")
-    private ShippingCompany company;
-
-    public CoveredRegion(int regionId,String region) {
+    @ManyToMany(mappedBy = "coveredRegions")
+    private List<ShippingCompany> shippingCompanies;
+    public CoveredRegion(int regionId, String region, List<ShippingCompany> shippingCompanies) {
         this.regionId=regionId;
         this.region = region;
+        this.shippingCompanies = shippingCompanies;
     }
 
     public CoveredRegion() {
@@ -41,11 +42,12 @@ public class CoveredRegion {
         this.regionId = regionId;
     }
 
-    public ShippingCompany getCompany() {
-        return company;
+
+    public List<ShippingCompany> getShippingCompanies() {
+        return shippingCompanies;
     }
 
-    public void setCompany(ShippingCompany company) {
-        this.company = company;
+    public void setShippingCompanies(List<ShippingCompany> shippingCompanies) {
+        this.shippingCompanies = shippingCompanies;
     }
 }
