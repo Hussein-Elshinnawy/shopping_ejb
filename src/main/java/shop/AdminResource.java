@@ -2,12 +2,10 @@ package shop;
 
 import jakarta.annotation.Resource;
 
-import jakarta.enterprise.context.RequestScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
-import jakarta.persistence.Query;
 import jakarta.transaction.*;
 import jakarta.transaction.NotSupportedException;
 import jakarta.ws.rs.*;
@@ -156,7 +154,7 @@ public class AdminResource {
 
     @PUT
     @Path("/addCompanyToRegion/{companyId}/{regionId}")
-    public String addCompanyToRegion(@PathParam("companyId") int companyId, @PathParam("regionId") int regionId) {
+    public CoveredRegion addCompanyToRegion(@PathParam("companyId") int companyId, @PathParam("regionId") int regionId) {
 
         CoveredRegion region = entityManager.find(CoveredRegion.class, regionId);
         ShippingCompany company = entityManager.find(ShippingCompany.class, companyId);
@@ -166,15 +164,16 @@ public class AdminResource {
         } catch (NotSupportedException | SystemException e) {
             throw new RuntimeException(e);
         }
+
         region.getShippingCompanies().add(company);
-        entityManager.merge(region);
+        //entityManager.merge(region);
         try {
             userTransaction.commit();
         } catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException |
                  IllegalStateException | SystemException e) {
             e.printStackTrace();
         }
-        return "Company added to Region successfully!";
+        return entityManager.merge(region);
     }
 
 
