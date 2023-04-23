@@ -3,6 +3,7 @@ package shop;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Stateless
@@ -13,13 +14,15 @@ public class CoveredRegion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int regionId;
     private String region;
-
-    @ManyToMany(mappedBy = "coveredRegions")
-    private List<ShippingCompany> shippingCompanies;
-    public CoveredRegion(int regionId, String region, List<ShippingCompany> shippingCompanies) {
+    @ManyToMany(fetch=FetchType.EAGER)
+    @JoinTable(name = "region_company",
+            joinColumns = @JoinColumn(name = "regionId"),
+            inverseJoinColumns = @JoinColumn(name = "companyId"))
+    private List<ShippingCompany> shippingCompanies = new ArrayList<>();
+    public CoveredRegion(int regionId, String region) {
         this.regionId=regionId;
         this.region = region;
-        this.shippingCompanies = shippingCompanies;
+
     }
 
     public CoveredRegion() {

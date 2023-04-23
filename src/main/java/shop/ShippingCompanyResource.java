@@ -104,26 +104,4 @@ public class ShippingCompanyResource {
         return entityManager.createQuery("SELECT c FROM ShippingCompany c", ShippingCompany.class).getResultList();
     }
 
-//    @PUT
-//    @Path("/updateShippingCompany/{companyId}")
-//    public void updateById(@PathParam("companyId") int companyId, String name) {
-//        ShippingCompany company = getShippingCompanyId(companyId);
-//        if (company != null) {
-//            company.setName(name);
-//            /* update any other fields as needed */
-//            try {
-//                userTransaction.begin();
-//            } catch (NotSupportedException | SystemException e) {
-//                throw new RuntimeException(e);
-//            }
-//            entityManager.merge(company);
-//        }
-//        try {
-//            userTransaction.commit();
-//        } catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException |
-//                 IllegalStateException | SystemException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
 }

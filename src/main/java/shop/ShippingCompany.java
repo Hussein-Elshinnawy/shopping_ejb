@@ -15,16 +15,11 @@ public class ShippingCompany {
     private int companyId;
     private String name;
 
-    @ManyToMany
-    @JoinTable(
-            name = "region_company",
-            joinColumns = @JoinColumn(name = "companyId"),
-            inverseJoinColumns = @JoinColumn(name = "regionId")
-    )
-    private List<CoveredRegion> coveredRegions;
+    @ManyToMany(mappedBy = "shippingCompanies",fetch=FetchType.EAGER)
+    private List<CoveredRegion> coveredRegions = new ArrayList<>();
 
-    public ShippingCompany(int companyId,String name ,List<CoveredRegion> coveredRegions) {
-        this.coveredRegions = coveredRegions;
+    public ShippingCompany(int companyId,String name ) {
+
        this.companyId=companyId;
         this.name = name;
     }
@@ -57,4 +52,6 @@ public class ShippingCompany {
     public void setCoveredRegions(List<CoveredRegion> coveredRegions) {
         this.coveredRegions = coveredRegions;
     }
+
+
 }
