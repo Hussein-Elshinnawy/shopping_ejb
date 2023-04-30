@@ -1,5 +1,6 @@
 package shop;
 import jakarta.annotation.Resource;
+import jakarta.ejb.Stateful;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;

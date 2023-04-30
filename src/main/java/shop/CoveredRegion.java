@@ -1,12 +1,13 @@
 package shop;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Stateless
+
 @Entity
 @Table(name = "coveredregion")
 public class CoveredRegion {
@@ -14,10 +15,11 @@ public class CoveredRegion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int regionId;
     private String region;
-    @ManyToMany(fetch=FetchType.EAGER)
+    @ManyToMany(fetch=FetchType.LAZY)
     @JoinTable(name = "region_company",
             joinColumns = @JoinColumn(name = "regionId"),
             inverseJoinColumns = @JoinColumn(name = "companyId"))
+    @JsonIgnoreProperties("shippingCompanies")
     private List<ShippingCompany> shippingCompanies = new ArrayList<>();
     public CoveredRegion(int regionId, String region) {
         this.regionId=regionId;

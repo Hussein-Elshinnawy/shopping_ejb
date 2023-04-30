@@ -9,13 +9,22 @@
         <class>shop.Customer</class>
         <class>shop.Admin</class>
         <class>shop.SellingCompanyRep</class>
+        <class>shop.ShippingCompany</class>
+        <class>shop.CoveredRegion</class>
+        <class>shop.Product</class>
+        <class>shop.SellingCompanyCreationBean</class>
+        <class>shop.Order</class>
+        <class>shop.OrderedItem</class>
+        <class>shop.ShippingRequestNotificationMDB</class>
+        <class>shop.OrderManager</class>
+<!--        <class>shop.ShoppingCart</class>-->
         <!-- other classes -->
         <properties>
 
             <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://127.0.0.1:3306/codehub"/>
             <property name="jakarta.persistence.jdbc.user" value="root"/>
-            <property name="jakarta.persistence.jdbc.password" value=""/>
+            <property name="jakarta.persistence.jdbc.password" value="12345678"/>
             <!--            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL8Dialect"/>-->
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>

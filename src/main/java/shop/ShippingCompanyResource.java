@@ -2,12 +2,10 @@ package shop;
 
 import jakarta.annotation.Resource;
 import jakarta.ejb.Stateless;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
-import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.*;
 import jakarta.transaction.*;
 import jakarta.transaction.NotSupportedException;
+import jakarta.transaction.RollbackException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 
@@ -104,4 +102,13 @@ public class ShippingCompanyResource {
         return entityManager.createQuery("SELECT c FROM ShippingCompany c", ShippingCompany.class).getResultList();
     }
 
+    //    @GET
+//    @Path("/getAllShippingCompany")
+//    public List<ShippingCompany> getAllShippingCompany() {
+//        return entityManager.createQuery("SELECT c FROM ShippingCompany c", ShippingCompany.class).setHint("jakarta.json.bind.JsonbViews", ShippingCompany.WithoutRegions.class.getName())
+//                .getResultList();
+//    }
+
 }
+
+

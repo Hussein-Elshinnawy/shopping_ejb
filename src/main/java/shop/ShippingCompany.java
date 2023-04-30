@@ -1,5 +1,7 @@
 package shop;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.*;
 
@@ -15,8 +17,15 @@ public class ShippingCompany {
     private int companyId;
     private String name;
 
-    @ManyToMany(mappedBy = "shippingCompanies",fetch=FetchType.EAGER)
+
+    @ManyToMany(mappedBy = "shippingCompanies",fetch=FetchType.LAZY)
+    //@JsonView(WithoutRegions.class)
+    @JsonIgnore
     private List<CoveredRegion> coveredRegions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "shippingCompany",fetch= FetchType.EAGER)
+    @JsonIgnore
+    private List<Order> orders ;
 
     public ShippingCompany(int companyId,String name ) {
 

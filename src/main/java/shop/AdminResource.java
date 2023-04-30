@@ -2,15 +2,25 @@ package shop;
 
 import jakarta.annotation.Resource;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
+import jakarta.ejb.EJB;
+import jakarta.inject.Inject;
+import jakarta.persistence.*;
 
 import jakarta.transaction.*;
 import jakarta.transaction.NotSupportedException;
+import jakarta.transaction.RollbackException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-
+//
+//import javax.jms.*;
+//import javax.naming.InitialContext;
+//import javax.naming.NamingException;
+import jakarta.jms.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import java.lang.IllegalStateException;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -33,15 +43,8 @@ public class AdminResource {
 
     private CoveredRegionResource regionResource;
 
-    private static final String CHAR_LOWER = "abcdefghijklmnopqrstuvwxyz";
-    private static final String CHAR_UPPER = CHAR_LOWER.toUpperCase();
-    private static final String NUMBER = "0123456789";
-    private static final String OTHER_CHAR = "!@#$%&*()_+-=[]?";
-
-    private static final String PASSWORD_ALLOW_BASE = CHAR_LOWER + CHAR_UPPER + NUMBER + OTHER_CHAR;
-    private static final int PASSWORD_LENGTH = 12;
-
-    private static Random random = new Random();
+    @EJB
+    private SellingCompanyCreationBean sellingCompanyCreationBean;
 
 
     @GET
@@ -101,9 +104,9 @@ public class AdminResource {
 
     @PUT
     @Path("/updateAdmin/{username}")
-    public String updateAdmin(@PathParam("username") String username,Admin admin) {
+    public String updateAdmin(@PathParam("username") String username, Admin admin) {
 
-        Admin adminFromDB = entityManager.find(Admin.class , username);
+        Admin adminFromDB = entityManager.find(Admin.class, username);
         adminFromDB.setName(admin.getName());
         adminFromDB.setEmail(admin.getEmail());
         adminFromDB.setPassword(admin.getPassword());
@@ -149,24 +152,12 @@ public class AdminResource {
 
     @POST
     @Path("/createSellingCompany")
-    public String createSellingCompany(SellingCompanyRep sellingCompanyRep) {
-        try {
-            userTransaction.begin();
-        } catch (NotSupportedException | SystemException e) {
-            throw new RuntimeException(e);
-        }
-        String password = generateRandomPassword();
-        sellingCompanyRep.setPassword(password);
-        entityManager.persist(sellingCompanyRep);
-        try {
-            userTransaction.commit();
-        } catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException |
-                 IllegalStateException |
-                 SystemException e) {
-            e.printStackTrace();
-        }
-        return "selling company createdsuccessfully!\n" + " welcome " + sellingCompanyRep.getName() + " your password " + sellingCompanyRep.getPassword();
+    public String createSellingCompany(SellingCompanyRep s) {
+        sellingCompanyCreationBean.createSellingCompany(s);
+        String password = sellingCompanyCreationBean.generatePassword();
+        return "Selling company created successfully!\n" + "Welcome " + s.getName() + ", your password is " + s.getPassword();
     }
+
 
     @GET
     @Path("/getAllSellingCompanyRep")
@@ -192,6 +183,7 @@ public class AdminResource {
         }
         return "shipping company created successfully!\n" + " welcome " + company.getName() + "your company id is" + company.getId();
     }
+
     @POST
     @Path("/createCoveredRegion")
     public String createCoveredRegion(CoveredRegion region) {
@@ -208,7 +200,7 @@ public class AdminResource {
                  SystemException e) {
             e.printStackTrace();
         }
-        return "shipping company created successfully!\n" + " welcome " + region.getRegion() + "your company id is" ;
+        return "shipping company created successfully!\n" + " welcome " + region.getRegion() + "your company id is";
     }
 
     @POST
@@ -245,15 +237,114 @@ public class AdminResource {
     @GET
     @Path("/getAllShippingCompany")
     public List<ShippingCompany> getAllShippingCompany() {
-        return entityManager.createQuery("SELECT DISTINCT c FROM ShippingCompany c JOIN FETCH c.coveredRegions", ShippingCompany.class).getResultList();
+        return entityManager.createQuery("SELECT c FROM ShippingCompany c", ShippingCompany.class).getResultList();
     }
-    public static String generateRandomPassword() {
-        StringBuilder password = new StringBuilder(PASSWORD_LENGTH);
-        int index = 0;
-        for (int i = 0; i < PASSWORD_LENGTH; i++) {
-            index = random.nextInt(PASSWORD_ALLOW_BASE.length());
-            password.append(PASSWORD_ALLOW_BASE.charAt(index));
+
+    @GET
+    @Path("/getShippingRequest/{companyId}")
+    public List<Order> getShippingRequest(@PathParam("companyId") int companyId) {
+        ShippingCompany company = entityManager.find(ShippingCompany.class, companyId);
+        System.out.println("please" + company.toString());
+        String jpql = "SELECT o FROM Order o WHERE o.shippingCompany = :company";
+        TypedQuery<Order> query = entityManager.createQuery(jpql, Order.class);
+        query.setParameter("company", company);
+        List<Order> orders = query.getResultList();
+        return orders;
+    }
+
+    //    @GET
+//    @Path("/{companyId}/processOrder/{orderId}")
+//    public String getOrdersByCompanyAndId(
+//            @PathParam("companyId") int companyId,
+//            @PathParam("orderId") int orderId) {
+//
+//        ShippingCompany company = entityManager.find(ShippingCompany.class, companyId);
+//        String jpql = "SELECT o FROM Order o WHERE o.shippingCompany = :company AND o.orderId = :orderId";
+//        TypedQuery<Order> query = entityManager.createQuery(jpql, Order.class);
+//        query.setParameter("company", company);
+//        query.setParameter("orderId", orderId);
+//        List<Order> orders = query.getResultList();
+//
+//        if (orders.isEmpty()) {
+//            return "Error in processing order.";
+//        }
+//        // create a JMS message with order and customer information
+//        MapMessage message = session.createMapMessage();
+//        message.setLong("orderId", orderId);
+//        message.setString("customerEmail", customerEmail);
+//        message.setString("customerName", customerName);
+//
+//// send the JMS message to the ShippingRequestNotificationQueue
+//        Queue queue = (Queue) initialContext.lookup("jms/ShippingRequestNotificationQueue");
+//        MessageProducer producer = session.createProducer(queue);
+//        producer.send(message);
+//        return "order "+orderId+" was successful";
+//        // process the orders list and return a response
+//        // ...
+//    }
+    @PUT
+    @Path("/{companyId}/processOrder/{orderId}")
+    public String getOrdersByCompanyAndId(
+            @PathParam("companyId") int companyId,
+            @PathParam("orderId") int orderId) throws JMSException, NamingException, NotSupportedException, SystemException {
+
+        // Obtain a reference to the JMS session
+
+        ShippingCompany company = entityManager.find(ShippingCompany.class, companyId);
+        String jpql = "SELECT o FROM Order o WHERE o.shippingCompany = :company AND o.orderId = :orderId";
+        TypedQuery<Order> query = entityManager.createQuery(jpql, Order.class);
+        query.setParameter("company", company);
+        query.setParameter("orderId", orderId);
+        List<Order> orders = query.getResultList();
+
+        if (orders.isEmpty()) {
+            return "Error in processing order.";
         }
-        return password.toString();
+        // create a JMS message with order and customer information
+        InitialContext context = new InitialContext();
+        ConnectionFactory connectionFactory = (ConnectionFactory) context.lookup("java:/ConnectionFactory");
+        Connection connection = connectionFactory.createConnection();
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+        Queue queue = (Queue) context.lookup("java:/jms/queue/ShippingRequestNotificationQueue");
+        //Notification notification = new Notification(customer.getUsername()+" Your order numbered" + Integer.toString(order.getOrder_id())+" is Processing");
+        MapMessage message = session.createMapMessage();
+        message.setString("customerName", orders.get(0).getCustomer().getUsername());
+
+        message.setString("message", orders.get(0).getCustomer().getMessage());
+        MessageProducer producer = session.createProducer(queue);
+        producer.send(message);
+        orders.get(0).getCustomer().setMessage("your order "+ orderId +" is proessing");
+        String username=orders.get(0).getCustomer().getUsername();
+        System.out.println("message for username "+ username );
+        orders.get(0).getCustomer().setMessage("ORDER PROCCESSED");
+        String msg=orders.get(0).getCustomer().getMessage();
+        System.out.println(msg);
+        entityManager.getTransaction().begin();
+        Query q = entityManager.createQuery( "UPDATE Customer e SET e.message = :msg WHERE e.username = :username");
+        q.setParameter("msg", msg);
+        q.setParameter("username", username);
+        int updatedCount = q.executeUpdate();
+        session.close();
+        connection.close();
+//        MapMessage message = session.createMapMessage();
+//        message.setLong("orderId", orderId);
+//        message.setString("customerEmail", orders.get(0).getCustomer().getEmail());
+//        message.setString("customerName", orders.get(0).getCustomer().getName());
+//
+//        // send the JMS message to the ShippingRequestNotificationQueue
+//        MessageProducer producer = session.createProducer(queue);
+//        producer.send(message);
+//
+//        // Close the JMS session and connection
+//        session.close();
+//        connection.close();
+
+        return "order " + orderId + " was successful";
+        // process the orders list and return a response
+        // ...
     }
+
 }
+
+

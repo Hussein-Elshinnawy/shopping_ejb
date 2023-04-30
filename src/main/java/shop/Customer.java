@@ -1,13 +1,14 @@
 package shop;
 
-import jakarta.ejb.Stateless;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
-//@Stateless
+import java.util.List;
+
 @Entity
 @Table(name = "customer")
 public class Customer {
-
 
     @Id
     private String username;
@@ -16,6 +17,16 @@ public class Customer {
     private String password;
     private String address;
     private String phone;
+
+    private String message;
+//    @Transient
+//    private ShoppingCart cart = new ShoppingCart();
+
+    @OneToMany(mappedBy = "customer")
+    @JsonIgnore
+    private List<Order> orders;
+
+
 
     public Customer() {
     }
@@ -29,6 +40,21 @@ public class Customer {
         this.phone = phone;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public List<Order> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
+    }
 
     public String getUsername() {
         return username;
@@ -77,5 +103,12 @@ public class Customer {
     public void setPhone(String phone) {
         this.phone = phone;
     }
-}
 
+//    public ShoppingCart getCart() {
+//        return cart;
+//    }
+//
+//    public void setCart(ShoppingCart cart) {
+//        this.cart = cart;
+//    }
+}
